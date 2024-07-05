@@ -5,6 +5,16 @@
 var express = require('express');
 var app = express();
 
+function getUnix(date){
+  const unix = date.getTime();
+  return unix;
+}
+
+function getUtc(date){
+  let utc = date.toUTCString();
+  return utc;
+}
+
 // enable CORS (https://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
 // so that your API is remotely testable by FCC 
 var cors = require('cors');
@@ -24,7 +34,44 @@ app.get("/api/hello", function (req, res) {
   res.json({greeting: 'hello API'});
 });
 
+app.get("/api", function(req,res){
+  let date = new Date();
+  let unix = getUnix(date);
+  let utc = getUtc(date);
+  res.json({unix: unix, utc: utc});
+})
 
+app.get("/api/:date", function(req,res){
+  let { date } = req.params;
+
+  let dateObj;
+
+  if(date){
+    // Check if the date parameter is a Unix timestamp (in milliseconds)
+    if (!isNaN(date)) {
+      dateObj = new Date(parseInt(date));
+    } else {
+      // Otherwise, treat it as a date string
+      dateObj = new Date(date);
+    }
+  
+    // Validate the created Date object
+    if (isNaN(dateObj.getTime())) {
+      return res.json({ error: "Invalid Date" });
+    }
+  
+    let unix = getUnix(dateObj);
+    let utc = getUtc(dateObj);
+  
+    res.json({ unix: unix, utc: utc });
+  } else {
+    let date = new Date();
+    let unix = getUnix(date);
+    let utc = getUtc(date);
+
+    res.json({unix: unix, utc: utc});
+  }
+})
 
 // Listen on port set in environment variable or default to 3000
 var listener = app.listen(process.env.PORT || 3000, function () {
